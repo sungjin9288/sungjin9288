@@ -227,13 +227,3 @@ class Enemy(Character):
 
     def roll_drop(self) -> List[ItemStack]:
         return self.dropTable.roll()
-
-
-class Map:
-    def __init__(self, name: str, description: str, gatherTable: DropTable) -> None:
-        self.name: str = name
-        self.description: str = description
-        self.gatherTable: DropTable = gatherTable
-
-    def on_enter(self) -> List[ItemStack]:
-        return self.gatherTable.roll()

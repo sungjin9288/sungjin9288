@@ -67,7 +67,7 @@ def iter_lines(lines: Iterable[str]) -> Generator[str, None, None]:
 class Messages:
     APP_TITLE: str = "==== RPG CLI ===="
     MENU_MAIN: str = (
-        "1) 맵 진입(채집+전투)\n"
+        "1) 전투시작\n"
         "2) 상태 보기\n"
         "3) 인벤토리 보기\n"
         "4) 장비 관리\n"
