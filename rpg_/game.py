@@ -13,7 +13,6 @@ import asyncio
 from dataclasses import dataclass
 from typing import AsyncIterator, List, Optional
 
-from models import Battle
 from models import DropTable, Enemy, Equipment, Item, ItemStack, Map, Player
 from utils import InputCancelled, Messages, iter_lines, prompt_choice, prompt_text
 
