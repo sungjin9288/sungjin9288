@@ -119,6 +119,11 @@
 python main.py
 ```
 
+### 테스트
+
+```bash
+python -m unittest discover -s tests 
+```
 ---
 
 ## 🛠️ 개발 로드맵
@@ -140,6 +145,16 @@ python main.py
 
 ---
 
+## 📌 기술 포인트
+
+* **asyncio**
+ 
+  * 탐험 1턴의 판정(조우/드랍/이벤트)을 동시에 진행하기 위해 asyncio.gather 사용.
+  * 사용자 입력은 동기 유지, 판정/연출만 비동기 처리.
+  * resolve_explore_turn()에서 세 가지 판정을 병렬로 묶어 반환.
+  * exploration()에서는 asyncio.run()으로 결과만 받아서 동기 흐름 유지.
+  * 랜덤 판정 분리를 통해 향후 연출/지연 조정이 쉬운 구조로 유지.
+
 ## 📌 포트폴리오 관점에서의 강조점
 
 * 단순 기능 구현이 아닌 **게임 루프 설계 능력**
@@ -152,3 +167,12 @@ python main.py
 
 이 프로젝트는 개인 학습 및 포트폴리오 목적의 프로젝트이며,
 실무 환경에서의 코드 품질과 의사결정 과정을 연습하는 데 초점을 맞추고 있습니다.
+
+---
+
+## Boss Ending (v1.1)
+
+- Added "Ruins Depths" as a boss-only region.
+- Entry rule is fixed: level >= 6 AND (weapon+armor >= 2 OR potions >= 4).
+- Depth reward multiplier uses a fixed formula with a cap; bonus drop has a fixed trigger rule.
+- Boss victory logs a short ending sequence into LogBook.
