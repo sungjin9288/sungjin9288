@@ -1,49 +1,154 @@
-## startupcode / 스타트업코드
-안녕하세요! 🙋‍♂️ 개발자 입니다. 개발은 Programming이 아닌 Development라는 생각으로, 개발자 뿐 아니라 모든 직군이 함께 해야하는 것 이라고 생각합니다.
-항상 이야기하는것을 좋아하고 비난이 아닌 비판은 언제든지 환영합니다. 🥰 모두 행복했으면 좋겠어요!
-<br />
-<br />
-<br />
-## My values
-😎 모든것은 재미있어야 합니다<br />
-👌 안전성을 겸비한 속도를 지향 합니다<br />
-🦻 쉽게 말하고 어렵게 들으려고 노력합니다<br />
-<br />
-<br />
-<br />
-## How i work
-저는 항상 재미있게 살고 싶습니다. 사용자와 클라이언트를 동시에 만족 시키는 것 또한 재미있고, 새로운 기술을 배우는 것 또한 재미 있습니다. 어려운 프로덕트를 성공 시키는 경험또한 재미있고 기술을 쉽게 풀어내는 것 또한 재미있습니다 :) 그리고 무조건 약속한 시간을 지키기 위해 노력하며 단순히 약속한 시간을 지키는것이 아닌 최대한 완성도를 높이기 위해서 노력합니다!
-저는 장비에 관심이 많아서 모든 장비가 세팅되어 있는 환경을 좋아합니다 :) 그래서 자택하는걸 좋아하지만 가끔은 카페에서 일하는것도 좋습니다.
-<br />
-<br />
-<br />
-## Skills
-#### I use it often.
-<div style="display:flex;gap:30px;flex-wrap:wrap;">
-  <img src="https://img.shields.io/badge/js-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black">
-  <img src="https://img.shields.io/badge/ts-3178C6?style=for-the-badge&logo=typescript&logoColor=white">
-  <img src="https://img.shields.io/badge/express-000000?style=for-the-badge&logo=express&logoColor=white">
-  <img src="https://img.shields.io/badge/nestjs-E0234E?style=for-the-badge&logo=nestjs&logoColor=white">
-  <img src="https://img.shields.io/badge/react-61DAFB?style=for-the-badge&logo=react&logoColor=black">
-  <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white">
-  <img src="https://img.shields.io/badge/Babel-F9DC3E?style=for-the-badge&logo=Babel&logoColor=black">
-  <img src="https://img.shields.io/badge/Webpack-8DD6F9?style=for-the-badge&logo=Webpack&logoColor=black">
-</div>
-#### I've used it before.
-<div style="display:flex;gap:30px;flex-wrap:wrap;">
-   <img src="https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white">
-  <img src="https://img.shields.io/badge/iOS-000000?style=for-the-badge&logo=iOS&logoColor=white">
-  <img src="https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=Java&logoColor=white">
-  <img src="https://img.shields.io/badge/Kotlin-7F52FF?style=for-the-badge&logo=Kotlin&logoColor=white">
-  <img src="https://img.shields.io/badge/Swift-F05138?style=for-the-badge&logo=Swift&logoColor=white">
-  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=Docker&logoColor=white">
-  <img src="https://img.shields.io/badge/Kubernetes-326CE5?style=for-the-badge&logo=Kubernetes&logoColor=white">
-  <img src="https://img.shields.io/badge/Jenkins-D24939?style=for-the-badge&logo=Jenkins&logoColor=white">
-  <img src="https://img.shields.io/badge/Elasticsearch-005571?style=for-the-badge&logo=Elasticsearch&logoColor=white">
-  <img src="https://img.shields.io/badge/Logstash-005571?style=for-the-badge&logo=Logstash&logoColor=white">
-  <img src="https://img.shields.io/badge/kibana-005571?style=for-the-badge&logo=Kibana&logoColor=white">
-  <img src="https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazonaws&logoColor=white">
-</div>
-<br />
-<br />
-<br />
+# CLI RPG (Python)
+
+턴제 전투와 탐험 이벤트를 중심으로 한 **콘솔 기반 RPG 프로젝트**입니다.
+단순한 CLI 과제를 넘어서, **실제 게임 루프를 갖춘 프로그램을 점진적으로 설계·확장·리팩토링**하는 것을 목표로 합니다.
+
+이 프로젝트는 **동기식 MVP → 구조 개선 → 비동기 처리 도입**의 과정을 Git 히스토리로 명확히 보여주는 것을 포트폴리오 핵심 가치로 삼고 있습니다.
+
+---
+
+## 🎮 프로젝트 개요
+
+* **장르**: 턴제 RPG (CLI)
+* **플랫폼**: Python 콘솔 프로그램
+* **핵심 목표**
+
+  * 사용자 입력 기반의 명확한 게임 루프 구현
+  * 확률 이벤트와 성장 요소를 통한 반복 플레이 구조
+  * 리팩토링과 설계 개선 과정을 커밋 단위로 기록
+
+---
+
+## 🔁 핵심 게임 루프
+
+1. **마을 (안전 지대)**
+
+   * 상점: 아이템 구매 / 판매
+   * 인벤토리 및 장비 관리
+   * 제작(대장장이 이벤트 발생 시)
+
+2. **탐험 (위험 지대, 턴 기반)**
+
+   * 몬스터 조우 및 전투
+   * 확률 기반 이벤트 발생
+
+     * 상인 조우
+     * 희귀 대장장이 조우
+   * 재료 및 골드 드랍
+
+3. **성장 (보상)**
+
+   * 경험치 누적 → 레벨업
+   * 스탯 성장 및 장비 교체
+   * 다음 탐험을 위한 전략 선택
+
+이 구조를 반복하며 플레이가 진행됩니다.
+
+---
+
+## ⚔️ 주요 기능
+
+### 전투 시스템
+
+* 턴제 전투 구조
+* 플레이어 행동 선택
+
+  * 공격
+  * 포션 사용
+  * 도망
+
+### 성장 시스템
+
+* 경험치(XP) 누적 및 레벨업
+* 레벨업 시 스탯 증가
+
+### 탐험 & 이벤트
+
+* 탐험 턴마다 확률 판정
+* 전투 / 이벤트 / 보상 중 하나 발생
+* 상인 이벤트
+
+  * 랜덤 재고로 아이템 구매 및 판매 가능
+* 희귀 대장장이 이벤트
+
+  * 레시피 기반 장비 제작
+
+### 아이템 & 제작
+
+* 골드 및 재료 드랍 테이블
+* 장비 제작 시 재료 소모
+* 장비 교체에 따른 전투 성능 변화
+
+---
+
+## 🧪 과제 요구사항 대응 현황
+
+| 요구사항           | 상태 | 설명                     |
+| -------------- | -- | ---------------------- |
+| CLI 프로그램       | ✅  | input / print 기반 콘솔 게임 |
+| 사용자 입력 기반 진행   | ✅  | 메뉴 선택 및 분기 구조          |
+| 모듈/패키지 분리      | ⏳  | 리팩토링 단계에서 적용 예정        |
+| 타입 힌트          | ⏳  | 모든 함수에 적용 예정           |
+| 예외 처리          | ⏳  | 입력 검증 로직 정비 예정         |
+| 이터레이터/제네레이터    | ⏳  | 전투/탐험 로그 리플레이 기능       |
+| asyncio 비동기 처리 | ⏳  | 탐험 판정 병렬 처리에 적용 예정     |
+
+---
+
+## 📁 프로젝트 구조 (예정)
+
+```text
+.
+├─ main.py            # 게임 루프 및 메뉴 진입점
+├─ models.py          # Player, Monster, Item 등 도메인 모델
+├─ systems/
+│  ├─ combat.py       # 전투 로직
+│  ├─ explore.py      # 탐험 및 이벤트 판정
+│  ├─ shop.py         # 상점 시스템
+│  └─ craft.py        # 제작(대장장이) 시스템
+└─ utils/
+   ├─ io.py           # 입력/출력 유틸리티
+   └─ logging.py      # 로그 기록 및 제네레이터
+```
+
+---
+
+## ▶️ 실행 방법
+
+```bash
+python main.py
+```
+
+---
+
+## 🛠️ 개발 로드맵
+
+* **v0.1**
+
+  * 플레이 가능한 CLI RPG 완성 (전투 / 탐험 / 이벤트 / 상점 / 제작 / 연출)
+
+* **v0.2**
+
+  * 모듈 분리 및 책임 분리
+  * 타입 힌트 전면 적용
+  * 입력 안정성 및 예외 처리 강화
+
+* **v0.3**
+
+  * 로그 리플레이 기능 (이터레이터/제네레이터)
+  * asyncio 기반 탐험 판정 병렬 처리
+
+---
+
+## 📌 포트폴리오 관점에서의 강조점
+
+* 단순 기능 구현이 아닌 **게임 루프 설계 능력**
+* 커밋 히스토리를 통한 **점진적 개발 및 리팩토링 과정**
+* 요구사항을 코드 구조로 풀어내는 **설계 중심 접근**
+
+---
+
+## 📎 참고
+
+이 프로젝트는 개인 학습 및 포트폴리오 목적의 프로젝트이며,
+실무 환경에서의 코드 품질과 의사결정 과정을 연습하는 데 초점을 맞추고 있습니다.
