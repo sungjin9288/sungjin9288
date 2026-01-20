@@ -1,4 +1,4 @@
-# CLI RPG – Ruin of the Kingdom
+# CLI RPG
 
 A **feature-complete, single‑player CLI RPG** built in Python.
 
