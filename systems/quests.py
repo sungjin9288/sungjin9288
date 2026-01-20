@@ -23,6 +23,7 @@ QUEST_POOL: List[Quest] = [
     Quest("victory_2", "전투 2회 승리", "victory", 2, reward_gold=5),
     Quest("materials_3", "재료 3개 획득", "material", 3, reward_material=("철", 1)),
     Quest("meet_merchant", "상인 만나기", "merchant", 1, reward_log="상인의 호의를 얻었다."),
+    Quest("craft_1", "장비 1회 제작", "craft", 1, reward_gold=4),
 ]
 
 
@@ -60,11 +61,12 @@ class QuestManager:
             name, count = quest.reward_material
             player.materials[name] += count
             log_print(logbook, f"보상: {name} {count}개")
+            logbook.add(f"DISCOVER_MATERIAL:{name}")
         if quest.reward_log:
             log_print(logbook, quest.reward_log)
 
     def _count_events(self, lines: List[str]) -> Dict[str, int]:
-        counters = {"victory": 0, "material": 0, "merchant": 0}
+        counters = {"victory": 0, "material": 0, "merchant": 0, "craft": 0}
         for line in lines:
             if "전투 승리!" in line:
                 counters["victory"] += 1
@@ -72,6 +74,8 @@ class QuestManager:
                 counters["material"] += 1
             if "상인을 만났습니다" in line:
                 counters["merchant"] += 1
+            if "제작 완료:" in line:
+                counters["craft"] += 1
         return counters
 
     def _clone(self, quest: Quest) -> Quest:

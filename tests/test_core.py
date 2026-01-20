@@ -4,7 +4,16 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from models import Enemy, Player, get_equipment_bonus
+from models import (
+    BOSS_MATERIALS,
+    BUILD_TAGS,
+    CRAFT_RECIPES,
+    EQUIPMENT_ITEMS,
+    EQUIPMENT_TIERS,
+    Enemy,
+    Player,
+    get_equipment_bonus,
+)
 from systems import explore
 from systems.achievements import AchievementManager
 from systems.combat import (
@@ -15,8 +24,11 @@ from systems.combat import (
     is_boss_enraged,
     resolve_boss_intent,
 )
+from systems.crafting import craft_item, list_craftable
+from systems.dex import DexManager
 from systems.quests import Quest, QuestManager
 from systems.save import load_game, save_game
+from systems.shop import BASE_EQUIPMENT_STOCK, build_rotating_stock, get_sell_price
 from utils.logging import LogBook
 
 
@@ -25,7 +37,7 @@ def first_region() -> str:
 
 
 def boss_region() -> str:
-    return next(name for name in explore.REGION_TABLE if name not in explore.REGION_DROPS)
+    return "폐허 심층"
 
 
 class TestCoreSystems(unittest.TestCase):
@@ -94,7 +106,8 @@ class TestCoreSystems(unittest.TestCase):
 
     def test_boss_ending_logged(self) -> None:
         logbook = LogBook()
-        explore.boss_ending(logbook)
+        player = Player(name="tester")
+        explore.boss_ending(logbook, player)
         lines = list(logbook.replay())
         self.assertEqual(sum("엔딩:" in line for line in lines), 1)
 
@@ -168,13 +181,14 @@ class TestCoreSystems(unittest.TestCase):
             player.materials["철"] = 2
             logbook = LogBook()
             achievements = AchievementManager(ach_path)
+            dex_manager = DexManager()
             achievements.set_unlocked(["first_boss_clear"])
             achievements.save()
-            save_game(player, achievements, logbook, save_path)
+            save_game(player, achievements, dex_manager, logbook, save_path)
             player.gold = 1
             player.materials["철"] = 0
             achievements.set_unlocked([])
-            load_game(player, achievements, logbook, save_path)
+            load_game(player, achievements, dex_manager, logbook, save_path)
             self.assertEqual(player.gold, 33)
             self.assertEqual(player.materials["철"], 2)
             self.assertIn("first_boss_clear", achievements.unlocked)
@@ -186,7 +200,8 @@ class TestCoreSystems(unittest.TestCase):
             player = Player(name="tester")
             logbook = LogBook()
             achievements = AchievementManager(ach_path)
-            result = load_game(player, achievements, logbook, save_path)
+            dex_manager = DexManager()
+            result = load_game(player, achievements, dex_manager, logbook, save_path)
             self.assertFalse(result)
 
     def test_save_preserves_inventory(self) -> None:
@@ -194,13 +209,110 @@ class TestCoreSystems(unittest.TestCase):
             save_path = Path(tmp_dir) / "savegame.json"
             ach_path = Path(tmp_dir) / "achievements.json"
             player = Player(name="tester")
-            player.materials["가죽"] = 3
+            player.materials["야생꽃"] = 3
             logbook = LogBook()
             achievements = AchievementManager(ach_path)
-            save_game(player, achievements, logbook, save_path)
-            player.materials["가죽"] = 0
-            load_game(player, achievements, logbook, save_path)
-            self.assertEqual(player.materials["가죽"], 3)
+            dex_manager = DexManager()
+            save_game(player, achievements, dex_manager, logbook, save_path)
+            player.materials["야생꽃"] = 0
+            load_game(player, achievements, dex_manager, logbook, save_path)
+            self.assertEqual(player.materials["야생꽃"], 3)
+
+    def test_craft_consumes_materials(self) -> None:
+        player = Player(name="tester")
+        player.materials["사슴뿔"] = 2
+        player.materials["야생꽃"] = 1
+        logbook = LogBook()
+        result = craft_item(player, "초원의 결의검", logbook)
+        self.assertTrue(result)
+        self.assertEqual(player.materials["사슴뿔"], 0)
+        self.assertIn("초원의 결의검", player.weapons_owned)
+
+    def test_list_craftable(self) -> None:
+        materials = {"약초": 2, "사슴뿔": 1}
+        craftable = list_craftable(materials)
+        self.assertIn("길잡이 활", craftable)
+
+    def test_sell_price_listed_equipment(self) -> None:
+        self.assertEqual(get_sell_price("초원의 결의검"), 6)
+
+    def test_sell_price_recipe_equipment(self) -> None:
+        self.assertEqual(get_sell_price("피의 전투도끼"), 4)
+
+    def test_rotating_stock_has_all_builds(self) -> None:
+        rng = random.Random(1)
+        rotating = build_rotating_stock(rng, BASE_EQUIPMENT_STOCK)
+        self.assertEqual(len(rotating), 3)
+        for tag in BUILD_TAGS:
+            self.assertTrue(any(EQUIPMENT_ITEMS[name].tag == tag for name in rotating))
+
+    def test_rotating_stock_excludes_tier3(self) -> None:
+        rng = random.Random(2)
+        rotating = build_rotating_stock(rng, BASE_EQUIPMENT_STOCK)
+        self.assertTrue(all(EQUIPMENT_TIERS[name] <= 2 for name in rotating))
+
+    def test_rotating_stock_refresh_changes(self) -> None:
+        rng = random.Random(3)
+        first = build_rotating_stock(rng, BASE_EQUIPMENT_STOCK)
+        second = build_rotating_stock(rng, BASE_EQUIPMENT_STOCK, first)
+        self.assertNotEqual(first, second)
+
+    def test_tier3_recipes_require_boss_material(self) -> None:
+        tier3_items = [name for name, tier in EQUIPMENT_TIERS.items() if tier == 3]
+        for item_name in tier3_items:
+            recipe = CRAFT_RECIPES[item_name]
+            self.assertTrue(any(mat in BOSS_MATERIALS for mat in recipe))
+
+    def test_dex_material_discovery(self) -> None:
+        logbook = LogBook()
+        logbook.add("DISCOVER_MATERIAL:약초")
+        dex_manager = DexManager()
+        dex_manager.process(logbook)
+        self.assertIn("약초", dex_manager.materials)
+
+    def test_dex_equipment_discovery(self) -> None:
+        player = Player(name="tester")
+        player.materials["사슴뿔"] = 2
+        player.materials["야생꽃"] = 1
+        logbook = LogBook()
+        craft_item(player, "초원의 결의검", logbook)
+        dex_manager = DexManager()
+        dex_manager.process(logbook)
+        self.assertIn("초원의 결의검", dex_manager.equipment)
+
+    def test_dex_persists_through_save(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            save_path = Path(tmp_dir) / "savegame.json"
+            ach_path = Path(tmp_dir) / "achievements.json"
+            player = Player(name="tester")
+            logbook = LogBook()
+            achievements = AchievementManager(ach_path)
+            dex_manager = DexManager(materials=["약초"], equipment=["초원의 결의검"], monsters=["슬라임"])
+            save_game(player, achievements, dex_manager, logbook, save_path)
+            loaded_dex = DexManager()
+            load_game(player, achievements, loaded_dex, logbook, save_path)
+            self.assertIn("약초", loaded_dex.materials)
+            self.assertIn("초원의 결의검", loaded_dex.equipment)
+            self.assertIn("슬라임", loaded_dex.monsters)
+
+    def test_new_material_in_region_drops(self) -> None:
+        self.assertTrue(
+            any(name == "이끼씨앗" for name, _ in explore.REGION_DROPS["초원"])
+        )
+
+    def test_new_equipment_in_recipes(self) -> None:
+        self.assertIn("맹렬한 장창", EQUIPMENT_ITEMS)
+        self.assertIn("맹렬한 장창", CRAFT_RECIPES)
+
+    def test_conquest_bonus_rule(self) -> None:
+        self.assertEqual(explore.REGION_CONQUEST_BONUS["초원"], ("초원의 정수", 0.15))
+        self.assertEqual(explore.REGION_CONQUEST_BONUS["동굴"], ("심층 광석", 0.15))
+        self.assertEqual(explore.REGION_CONQUEST_BONUS["폐허"], ("부패의 핵", 0.15))
+
+    def test_bonus_materials_used_in_recipes(self) -> None:
+        self.assertIn("초원의 정수", CRAFT_RECIPES["맹렬한 장창"])
+        self.assertIn("심층 광석", CRAFT_RECIPES["수호자의 철퇴"])
+        self.assertIn("부패의 핵", CRAFT_RECIPES["심연의 갑옷"])
 
 
 if __name__ == "__main__":

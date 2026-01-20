@@ -13,6 +13,8 @@ class LogBook:
 
     def replay(self) -> Iterator[str]:
         for line in self.entries:
+            if line.startswith(("DISCOVER_", "KILL_BOSS:", "TRUE_ENDING_")):
+                continue
             yield line
 
     def has_entries(self) -> bool:

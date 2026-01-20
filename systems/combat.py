@@ -21,7 +21,7 @@ BOSS_GUARD_REDUCTION: float = 0.5
 BOSS_STUN_RESIST_MULT: float = 0.35
 
 
-def battle(player: Player, enemy: Enemy, logbook: LogBook) -> bool:
+def battle(player: Player, enemy: Enemy, logbook: LogBook, phase_two: bool = False) -> bool:
     defending = False
     guarding = False
     next_attack_bonus = 0
@@ -34,6 +34,10 @@ def battle(player: Player, enemy: Enemy, logbook: LogBook) -> bool:
     enemy_bleed_turns = 0
     player_stunned = False
     enemy_stunned = False
+    boss_charge_mult = BOSS_CHARGE_MULT * (1.3 if phase_two else 1.0)
+    boss_enrage_bonus = BOSS_ENRAGE_BONUS + (1 if phase_two else 0)
+    boss_guard_reduction = BOSS_GUARD_REDUCTION * (0.85 if phase_two else 1.0)
+    boss_stun_mult = BOSS_STUN_RESIST_MULT * (0.6 if phase_two else 1.0)
 
     while enemy.hp > 0 and player.hp > 0:
         if player_bleed_turns > 0:
@@ -82,6 +86,7 @@ def battle(player: Player, enemy: Enemy, logbook: LogBook) -> bool:
                     guarding,
                     next_attack_bonus,
                     boss_guarding,
+                    boss_guard_reduction,
                 )
             ):
                 log_print(logbook, line)
@@ -99,13 +104,23 @@ def battle(player: Player, enemy: Enemy, logbook: LogBook) -> bool:
             last_damage = 0
             attacked = False
             for line, damage, did_attack in enemy_action_logs(
-                player, enemy, defending, guarding, boss_intent, boss_enraged
+                player,
+                enemy,
+                defending,
+                guarding,
+                boss_intent,
+                boss_enraged,
+                boss_charge_mult,
+                boss_enrage_bonus,
             ):
                 log_print(logbook, line)
                 last_damage = damage
                 attacked = did_attack
             if guarding and attacked and last_damage > 0:
-                if random.random() < calculate_stun_chance(enemy.name):
+                stun_chance = calculate_stun_chance(enemy.name)
+                if enemy.name == BOSS_NAME:
+                    stun_chance *= boss_stun_mult
+                if random.random() < stun_chance:
                     enemy_stunned = True
                     log_print(logbook, f"{enemy.name}이(가) 잠시 기절합니다.")
 
@@ -120,6 +135,7 @@ def player_action_logs(
     guarding: bool,
     next_attack_bonus: int,
     boss_guarding: bool,
+    boss_guard_reduction: float = BOSS_GUARD_REDUCTION,
 ) -> Iterator[Tuple[str, bool, bool, bool, int, bool]]:
     bleed_applied = False
     if action == 4:
@@ -160,7 +176,7 @@ def player_action_logs(
         player.atk + player.weapon_level + atk_bonus + next_attack_bonus - enemy.atk // 4,
     )
     if boss_guarding:
-        damage = apply_boss_guard(damage)
+        damage = apply_boss_guard(damage, boss_guard_reduction)
     enemy.hp -= damage
     if player.weapon_tag == "OFFENSE" and random.random() < BLEED_CHANCE_OFFENSE:
         bleed_applied = True
@@ -174,6 +190,8 @@ def enemy_action_logs(
     guarding: bool,
     boss_intent: str,
     boss_enraged: bool,
+    charge_mult: float = BOSS_CHARGE_MULT,
+    enrage_bonus: int = BOSS_ENRAGE_BONUS,
 ) -> Iterator[Tuple[str, int, bool]]:
     if enemy.name == BOSS_NAME and boss_intent == "charge":
         yield "폐허의 왕이 힘을 응축하고 있습니다.", 0, False
@@ -181,9 +199,9 @@ def enemy_action_logs(
     _, def_bonus, _ = get_equipment_bonus(player)
     raw_damage = max(1, enemy.atk - player.defense - player.armor_level - def_bonus)
     if enemy.name == BOSS_NAME:
-        raw_damage += BOSS_ENRAGE_BONUS if boss_enraged else 0
+        raw_damage += enrage_bonus if boss_enraged else 0
         if boss_intent == "heavy":
-            raw_damage *= BOSS_CHARGE_MULT
+            raw_damage *= charge_mult
     damage = apply_damage_reduction(raw_damage, defending, guarding)
     player.hp -= damage
     yield f"{enemy.name}의 공격! {damage} 피해를 받았다.", damage, True
@@ -214,8 +232,8 @@ def is_boss_enraged(hp: int, max_hp: int) -> bool:
     return hp <= max_hp * BOSS_ENRAGE_THRESHOLD
 
 
-def apply_boss_guard(damage: int) -> int:
-    return max(1, int(damage * BOSS_GUARD_REDUCTION))
+def apply_boss_guard(damage: int, reduction: float = BOSS_GUARD_REDUCTION) -> int:
+    return max(1, int(damage * reduction))
 
 
 def apply_damage_reduction(damage: int, defending: bool, guarding: bool) -> int:

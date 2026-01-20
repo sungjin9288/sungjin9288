@@ -1,178 +1,233 @@
-# CLI RPG (Python)
+# CLI RPG – Ruin of the Kingdom
 
-턴제 전투와 탐험 이벤트를 중심으로 한 **콘솔 기반 RPG 프로젝트**입니다.
-단순한 CLI 과제를 넘어서, **실제 게임 루프를 갖춘 프로그램을 점진적으로 설계·확장·리팩토링**하는 것을 목표로 합니다.
+A **feature-complete, single‑player CLI RPG** built in Python.
 
-이 프로젝트는 **동기식 MVP → 구조 개선 → 비동기 처리 도입**의 과정을 Git 히스토리로 명확히 보여주는 것을 포트폴리오 핵심 가치로 삼고 있습니다.
+This project started as a simple synchronous console game and evolved into a **fully structured RPG** with region conquest, crafting‑driven progression, meta systems, save/load persistence, and a hidden **True Ending** — all implemented **without introducing unnecessary systems**, focusing instead on clean rules and player experience.
 
----
-
-## 🎮 프로젝트 개요
-
-* **장르**: 턴제 RPG (CLI)
-* **플랫폼**: Python 콘솔 프로그램
-* **핵심 목표**
-
-  * 사용자 입력 기반의 명확한 게임 루프 구현
-  * 확률 이벤트와 성장 요소를 통한 반복 플레이 구조
-  * 리팩토링과 설계 개선 과정을 커밋 단위로 기록
+> Status: **Feature Complete (Final Version)**
 
 ---
 
-## 🔁 핵심 게임 루프
+## 🎮 Game Overview
 
-1. **마을 (안전 지대)**
+The player starts from a small **village** and explores increasingly dangerous regions:
 
-   * 상점: 아이템 구매 / 판매
-   * 인벤토리 및 장비 관리
-   * 제작(대장장이 이벤트 발생 시)
+**Village → Grassland → Cave → Ruins → Deep Ruins (Boss)**
 
-2. **탐험 (위험 지대, 턴 기반)**
+Each region has:
 
-   * 몬스터 조우 및 전투
-   * 확률 기반 이벤트 발생
+* Unique monsters and materials
+* Distinct risk–reward characteristics
+* A miniboss whose defeat permanently alters the world
 
-     * 상인 조우
-     * 희귀 대장장이 조우
-   * 재료 및 골드 드랍
-
-3. **성장 (보상)**
-
-   * 경험치 누적 → 레벨업
-   * 스탯 성장 및 장비 교체
-   * 다음 탐험을 위한 전략 선택
-
-이 구조를 반복하며 플레이가 진행됩니다.
+The journey culminates in a confrontation with **The Ruin King**, a symbol of decay and collapse. Players who fully understand and conquer the world may unlock a **hidden True Ending**.
 
 ---
 
-## ⚔️ 주요 기능
+## 🧱 Core Systems
 
-### 전투 시스템
+### Combat
 
-* 턴제 전투 구조
-* 플레이어 행동 선택
+* Turn‑based combat
+* Player actions: Attack / Guard / Potion / Run
+* Guard introduces tactical depth and counter‑play
+* Status effects:
 
-  * 공격
-  * 포션 사용
-  * 도망
+  * **Bleed** (damage over time)
+  * **Stun** (limited, reduced effectiveness on bosses)
 
-### 성장 시스템
+### Boss Design
 
-* 경험치(XP) 누적 및 레벨업
-* 레벨업 시 스탯 증가
+* Main boss: **The Ruin King**
+* Pattern‑based behavior:
 
-### 탐험 & 이벤트
+  * Charging attacks
+  * Defensive stance
+  * Enrage phase
+* **True Ending Phase (Phase 2)**:
 
-* 탐험 턴마다 확률 판정
-* 전투 / 이벤트 / 보상 중 하나 발생
-* 상인 이벤트
-
-  * 랜덤 재고로 아이템 구매 및 판매 가능
-* 희귀 대장장이 이벤트
-
-  * 레시피 기반 장비 제작
-
-### 아이템 & 제작
-
-* 골드 및 재료 드랍 테이블
-* 장비 제작 시 재료 소모
-* 장비 교체에 따른 전투 성능 변화
+  * HP / ATK scaled ×1.3
+  * Enhanced patterns
+  * Increased resistance to status effects
 
 ---
 
-## 🧪 과제 요구사항 대응 현황
+## 🗺️ Regions & Conquest Rules
 
-| 요구사항           | 상태 | 설명                     |
-| -------------- | -- | ---------------------- |
-| CLI 프로그램       | ✅  | input / print 기반 콘솔 게임 |
-| 사용자 입력 기반 진행   | ✅  | 메뉴 선택 및 분기 구조          |
-| 모듈/패키지 분리      | ⏳  | 리팩토링 단계에서 적용 예정        |
-| 타입 힌트          | ⏳  | 모든 함수에 적용 예정           |
-| 예외 처리          | ⏳  | 입력 검증 로직 정비 예정         |
-| 이터레이터/제네레이터    | ⏳  | 전투/탐험 로그 리플레이 기능       |
-| asyncio 비동기 처리 | ⏳  | 탐험 판정 병렬 처리에 적용 예정     |
+Each region can be **conquered** by defeating its miniboss for the first time.
 
----
+### Region Conquest Effects
 
-## 📁 프로젝트 구조 (예정)
+* Conquest is recorded once via `LogBook`
+* After conquest, the region permanently changes
 
-```text
-.
-├─ main.py            # 게임 루프 및 메뉴 진입점
-├─ models.py          # Player, Monster, Item 등 도메인 모델
-├─ systems/
-│  ├─ combat.py       # 전투 로직
-│  ├─ explore.py      # 탐험 및 이벤트 판정
-│  ├─ shop.py         # 상점 시스템
-│  └─ craft.py        # 제작(대장장이) 시스템
-└─ utils/
-   ├─ io.py           # 입력/출력 유틸리티
-   └─ logging.py      # 로그 기록 및 제네레이터
-```
+### Conquest Bonus Materials
+
+| Region    | Bonus Material        |
+| --------- | --------------------- |
+| Grassland | Essence of the Plains |
+| Cave      | Deep Ore              |
+| Ruins     | Core of Corruption    |
+
+**Drop Rule**
+
+* Before conquest: bonus material never drops
+* After conquest: added to the region drop pool at a **fixed 15% chance**
+* No depth / build / item modifiers
+
+These materials are **fully consumable** and used only for crafting:
+
+* Tier 2 advanced equipment
+* Tier 3 (final) equipment as secondary ingredients
 
 ---
 
-## ▶️ 실행 방법
+## ⚒️ Equipment & Crafting
+
+### Build Tags
+
+All equipment belongs to one of three build archetypes:
+
+* **OFFENSE** – damage focused
+* **DEFENSE** – survivability focused
+* **EXPLORER** – exploration and drop efficiency
+
+### Equipment Tiers
+
+* **Tier 1–2**
+
+  * Can appear in shops (random rotation)
+  * Craftable
+* **Tier 3 (Final Equipment)**
+
+  * **Crafting only**
+  * Always requires at least one boss material
+  * Never sold in shops
+
+Tier 3 equipment includes short lore descriptions to reinforce narrative identity.
+
+---
+
+## 🏪 Shop & Economy
+
+### Village Shop
+
+* Buy / sell potions, materials, and equipment
+* Equipment selling:
+
+  * 50% of list price if sold by the shop
+  * Otherwise derived from crafting recipe material value
+  * Auto‑unequip if the item is currently equipped
+
+### Shop Rotation
+
+* On each village visit, shop equipment rotates
+* Rotation rules:
+
+  * One item per build (OFFENSE / DEFENSE / EXPLORER)
+  * Randomly selected
+  * **Tier 1–2 only**
+
+This creates a soft incentive to revisit the village and adapt builds.
+
+---
+
+## 📜 Meta Systems (Log‑Driven)
+
+All progression and meta systems are driven by a unified **LogBook**.
+
+### Quest System
+
+* Run‑based quests
+* Observes combat and exploration logs
+* Rewards: gold, materials, or records (no stat bonuses)
+
+### Achievements
+
+* Permanent records
+* No gameplay bonuses
+
+### Collection (Dex)
+
+* Material Dex
+* Equipment Dex
+* (Optional) Monster / Boss records
+* Discovery is logged via system markers
+* Dex progress persists through save/load
+
+---
+
+## 💾 Save & Load
+
+* JSON‑based persistence
+* Save / load available only in the village (safe checkpoint)
+* Persisted state:
+
+  * Player stats
+  * Inventory & equipment
+  * Achievements
+  * Collection progress
+* Quests reset per run by design
+
+---
+
+## 🏁 Endings
+
+### Normal Ending
+
+* Defeat the Ruin King
+* Ending text reflects playstyle
+
+### True Ending (Hidden)
+
+**Unlock Conditions** (all required):
+
+* All regions conquered
+* Collection completion ≥ 80%
+* Ruin King defeated at least once
+
+**Trigger**
+
+* Re‑enter Deep Ruins after meeting conditions
+* Player choice: proceed or withdraw
+
+**True Ending Battle**
+
+* Phase 2 Ruin King (scaled stats + enhanced patterns)
+
+**Records**
+
+* `TRUE_ENDING_UNLOCKED`
+* `TRUE_ENDING_CLEAR`
+
+The True Ending represents the final purification of the world.
+
+---
+
+## 🧪 Testing
 
 ```bash
-python main.py
+python -m unittest discover -s tests
 ```
 
-### 테스트
-
-```bash
-python -m unittest discover -s tests 
-```
----
-
-## 🛠️ 개발 로드맵
-
-* **v0.1**
-
-  * 플레이 가능한 CLI RPG 완성 (전투 / 탐험 / 이벤트 / 상점 / 제작 / 연출)
-
-* **v0.2**
-
-  * 모듈 분리 및 책임 분리
-  * 타입 힌트 전면 적용
-  * 입력 안정성 및 예외 처리 강화
-
-* **v0.3**
-
-  * 로그 리플레이 기능 (이터레이터/제네레이터)
-  * asyncio 기반 탐험 판정 병렬 처리
+* Core rules, economy logic, conquest behavior, and endings are covered
+* Log output during tests is intentional where noted
 
 ---
 
-## 📌 기술 포인트
+## 🎯 Design Philosophy
 
-* **asyncio**
- 
-  * 탐험 1턴의 판정(조우/드랍/이벤트)을 동시에 진행하기 위해 asyncio.gather 사용.
-  * 사용자 입력은 동기 유지, 판정/연출만 비동기 처리.
-  * resolve_explore_turn()에서 세 가지 판정을 병렬로 묶어 반환.
-  * exploration()에서는 asyncio.run()으로 결과만 받아서 동기 흐름 유지.
-  * 랜덤 판정 분리를 통해 향후 연출/지연 조정이 쉬운 구조로 유지.
+* Prefer **clear rules over complex systems**
+* Avoid stat inflation
+* Reuse existing structures instead of adding new layers
+* Let player decisions shape the narrative outcome
 
-## 📌 포트폴리오 관점에서의 강조점
-
-* 단순 기능 구현이 아닌 **게임 루프 설계 능력**
-* 커밋 히스토리를 통한 **점진적 개발 및 리팩토링 과정**
-* 요구사항을 코드 구조로 풀어내는 **설계 중심 접근**
+This project emphasizes **completeness, coherence, and restraint**.
 
 ---
 
-## 📎 참고
+## 📌 Project Status
 
-이 프로젝트는 개인 학습 및 포트폴리오 목적의 프로젝트이며,
-실무 환경에서의 코드 품질과 의사결정 과정을 연습하는 데 초점을 맞추고 있습니다.
+This project is considered **final and complete**.
 
----
-
-## Boss Ending (v1.1)
-
-- Added "Ruins Depths" as a boss-only region.
-- Entry rule is fixed: level >= 6 AND (weapon+armor >= 2 OR potions >= 4).
-- Depth reward multiplier uses a fixed formula with a cap; bonus drop has a fixed trigger rule.
-- Boss victory logs a short ending sequence into LogBook.
+Future work, if any, would be pursued as **separate projects** (e.g., combat simulators or balance analysis tools) rather than extending the core game.

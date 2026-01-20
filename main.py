@@ -2,6 +2,7 @@
 
 from models import Player
 from systems.achievements import AchievementManager
+from systems.dex import DexManager
 from systems.quests import QuestManager
 from systems.town import town_menu
 from utils.logging import LogBook
@@ -37,8 +38,9 @@ def main() -> None:
     logbook = LogBook()
     quest_manager = QuestManager()
     achievement_manager = AchievementManager(Path("achievements.json"))
+    dex_manager = DexManager()
     quest_manager.activate_run_quests(logbook)
-    town_menu(player, logbook, quest_manager, achievement_manager)
+    town_menu(player, logbook, quest_manager, achievement_manager, dex_manager)
 
 
 if __name__ == "__main__":

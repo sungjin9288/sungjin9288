@@ -16,6 +16,8 @@ ACHIEVEMENT_DEFS: List[Achievement] = [
     Achievement("first_boss_clear", "첫 보스 처치"),
     Achievement("bleed_kill", "출혈로 마무리"),
     Achievement("stun_block_charge", "기절로 차징 차단"),
+    Achievement("first_craft", "첫 제작 성공"),
+    Achievement("true_ending_clear", "진엔딩 처치"),
 ]
 
 
@@ -35,6 +37,8 @@ class AchievementManager:
                 bleed_seen = True
             if "힘을 모으기 시작합니다" in line:
                 charge_seen = True
+            if "제작 완료:" in line:
+                self.unlock("first_craft", logbook)
             if "기절해 움직이지 못합니다" in line and charge_seen:
                 self.unlock("stun_block_charge", logbook)
             if "전투 승리!" in line and bleed_seen:
@@ -42,6 +46,8 @@ class AchievementManager:
                 bleed_seen = False
             if "폐허의 왕을 쓰러뜨렸습니다" in line:
                 self.unlock("first_boss_clear", logbook)
+            if "TRUE_ENDING_CLEAR" in line:
+                self.unlock("true_ending_clear", logbook)
         self.last_log_index = len(logbook.entries)
 
     def unlock(self, achievement_id: str, logbook: LogBook) -> None:
