@@ -2,7 +2,7 @@ import asyncio
 import random
 from typing import Dict, List, Optional, Tuple
 
-from models import DROP_TABLE, Enemy, MONSTER_TEMPLATES, Player
+from models import DROP_TABLE, Enemy, MONSTER_TEMPLATES, Player, get_equipment_bonus
 from systems.combat import battle
 from systems.town import blacksmith_event, merchant_event
 from utils.io import safe_int
@@ -54,6 +54,11 @@ DEPTH_MULT_STEP: float = 0.1
 DEPTH_MULT_MAX: float = 2.0
 BONUS_DROP_MIN_DEPTH: int = 2
 BONUS_DROP_ALLOWED_REGIONS: Tuple[str, ...] = ("초원", "동굴", "폐허")
+LEVEL_UP_CHOICES: Tuple[str, ...] = ("공격형", "생존형", "탐험형")
+LEVEL_UP_ATK_GAIN: int = 2
+LEVEL_UP_DEF_GAIN: int = 1
+LEVEL_UP_HP_GAIN: int = 5
+LEVEL_UP_EXPLORE_GAIN: float = 0.05
 
 
 def explore_intro(logbook: LogBook) -> None:
@@ -84,11 +89,12 @@ def select_region(player: Player) -> str:
         print(reason)
 
 
-def reward_multiplier(region: str, depth: int) -> float:
+def reward_multiplier(region: str, depth: int, player: Player) -> float:
     base = REGION_REWARD.get(region, 1.0)
     depth_bonus = DEPTH_MULT_BASE + DEPTH_MULT_STEP * max(0, depth - 1)
     depth_bonus = min(depth_bonus, DEPTH_MULT_MAX)
-    return base * depth_bonus
+    explore_bonus = 1.0 + get_explore_bonus_total(player)
+    return base * depth_bonus * explore_bonus
 
 
 def maybe_add_bonus_drop(region: str, depth: int, drops: List[str]) -> None:
@@ -148,11 +154,12 @@ async def roll_encounter(region: str) -> Optional[Enemy]:
     return None
 
 
-async def roll_drops(region: str) -> List[str]:
+async def roll_drops(region: str, explore_bonus: float) -> List[str]:
     await asyncio.sleep(0.05)
     drops: List[str] = []
     for name, chance in REGION_DROPS.get(region, DROP_TABLE):
-        if random.random() < chance:
+        adjusted = min(0.95, chance + explore_bonus)
+        if random.random() < adjusted:
             drops.append(name)
     return drops
 
@@ -167,9 +174,11 @@ async def roll_event(region: str) -> str:
     return "none"
 
 
-async def resolve_explore_turn(region: str) -> Tuple[Optional[Enemy], List[str], str]:
+async def resolve_explore_turn(region: str, explore_bonus: float) -> Tuple[Optional[Enemy], List[str], str]:
     results = await asyncio.gather(
-        roll_encounter(region), roll_drops(region), roll_event(region)
+        roll_encounter(region),
+        roll_drops(region, explore_bonus),
+        roll_event(region),
     )
     return results[0], results[1], results[2]
 
@@ -184,9 +193,11 @@ def exploration(player: Player, logbook: LogBook) -> None:
 
     depth = 1
     while True:
-        enemy, drops, event = asyncio.run(resolve_explore_turn(region))
+        enemy, drops, event = asyncio.run(
+            resolve_explore_turn(region, get_explore_bonus_total(player))
+        )
         maybe_add_bonus_drop(region, depth, drops)
-        multiplier = reward_multiplier(region, depth)
+        multiplier = reward_multiplier(region, depth, player)
 
         if enemy is None:
             log_print(logbook, "주변이 조용합니다. 전투가 발생하지 않았습니다.")
@@ -251,14 +262,38 @@ def apply_level_up(player: Player, logbook: LogBook) -> None:
     while player.exp >= next_level_exp(player.level):
         player.exp -= next_level_exp(player.level)
         player.level += 1
-        player.max_hp += 4
-        player.atk += 1
-        player.defense += 1
         player.hp = player.max_hp
-        log_print(
-            logbook,
-            f"레벨업! 현재 레벨 {player.level}. 체력/공격/방어가 상승했습니다.",
-        )
+        log_print(logbook, f"레벨업! 현재 레벨 {player.level}.")
+        apply_level_up_choice(player, logbook)
+
+
+def apply_level_up_choice(player: Player, logbook: LogBook) -> None:
+    print("레벨업 선택지를 고르세요.")
+    print("1) 공격형")
+    print("2) 생존형")
+    print("3) 탐험형")
+    choice = safe_int("> ", 1, 3)
+    selected = LEVEL_UP_CHOICES[choice - 1]
+    apply_level_up_selection(player, selected, logbook)
+
+
+def apply_level_up_selection(player: Player, selection: str, logbook: LogBook) -> None:
+    if selection == "공격형":
+        player.atk += LEVEL_UP_ATK_GAIN
+        log_print(logbook, "공격력이 상승했습니다.")
+    elif selection == "생존형":
+        player.defense += LEVEL_UP_DEF_GAIN
+        player.max_hp += LEVEL_UP_HP_GAIN
+        player.hp = player.max_hp
+        log_print(logbook, "방어력과 최대 체력이 상승했습니다.")
+    else:
+        player.explore_bonus += LEVEL_UP_EXPLORE_GAIN
+        log_print(logbook, "탐험 감각이 날카로워졌습니다.")
+
+
+def get_explore_bonus_total(player: Player) -> float:
+    _, _, equip_bonus = get_equipment_bonus(player)
+    return player.explore_bonus + equip_bonus
 
 
 def apply_drops(player: Player, drops: List[str], logbook: LogBook) -> None:

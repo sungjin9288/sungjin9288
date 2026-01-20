@@ -15,6 +15,9 @@ class Player:
     potions: int = 2
     weapon_level: int = 0
     armor_level: int = 0
+    weapon_tag: str = "OFFENSE"
+    armor_tag: str = "DEFENSE"
+    explore_bonus: float = 0.0
     materials: Dict[str, int] = field(
         default_factory=lambda: {"철": 0, "가죽": 0, "약초": 0}
     )
@@ -56,3 +59,20 @@ BLACKSMITH_RECIPES: Dict[str, Dict[str, int]] = {
     "무기 강화": {"철": 2, "가죽": 1},
     "방어구 강화": {"철": 1, "가죽": 2},
 }
+
+BUILD_TAGS: Tuple[str, ...] = ("OFFENSE", "DEFENSE", "EXPLORER")
+BUILD_TAG_BONUSES: Dict[str, Tuple[int, int, float]] = {
+    "OFFENSE": (1, 0, 0.0),
+    "DEFENSE": (0, 1, 0.0),
+    "EXPLORER": (0, 0, 0.05),
+}
+
+
+def get_tag_bonus(tag: str) -> Tuple[int, int, float]:
+    return BUILD_TAG_BONUSES.get(tag, (0, 0, 0.0))
+
+
+def get_equipment_bonus(player: Player) -> Tuple[int, int, float]:
+    weapon_atk, weapon_def, weapon_exp = get_tag_bonus(player.weapon_tag)
+    armor_atk, armor_def, armor_exp = get_tag_bonus(player.armor_tag)
+    return weapon_atk + armor_atk, weapon_def + armor_def, weapon_exp + armor_exp

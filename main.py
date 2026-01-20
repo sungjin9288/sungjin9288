@@ -1,4 +1,8 @@
-﻿from models import Player
+﻿from pathlib import Path
+
+from models import Player
+from systems.achievements import AchievementManager
+from systems.quests import QuestManager
 from systems.town import town_menu
 from utils.logging import LogBook
 
@@ -31,7 +35,10 @@ def main() -> None:
     name = input("영웅의 이름을 입력하세요: ").strip() or "영웅"
     player = Player(name=name)
     logbook = LogBook()
-    town_menu(player, logbook)
+    quest_manager = QuestManager()
+    achievement_manager = AchievementManager(Path("achievements.json"))
+    quest_manager.activate_run_quests(logbook)
+    town_menu(player, logbook, quest_manager, achievement_manager)
 
 
 if __name__ == "__main__":
